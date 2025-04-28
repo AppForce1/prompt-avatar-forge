@@ -35,3 +35,16 @@ export const downloadImage = (url: string, filename: string = 'avatar.png'): voi
   link.click();
   document.body.removeChild(link);
 };
+
+// Helper function to strip base64 header for OpenAI API
+export const stripBase64Header = (base64String: string): string => {
+  return base64String.replace(/^data:image\/[a-z]+;base64,/, '');
+};
+
+// Convert OpenAI response to usable URL
+export const base64ToUrl = (base64String: string): string => {
+  if (!base64String.startsWith('data:image')) {
+    return `data:image/png;base64,${base64String}`;
+  }
+  return base64String;
+};

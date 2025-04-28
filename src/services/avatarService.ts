@@ -1,5 +1,6 @@
 
 import { toast } from 'sonner';
+import { stripBase64Header, fileToBase64, base64ToUrl } from '@/utils/fileUtils';
 
 // Define types for our API
 export type GenerationMode = 'create' | 'edit';
@@ -26,97 +27,123 @@ export interface Avatar {
   metadata: AvatarMetadata;
 }
 
-// Mock data for placeholder avatars (to simulate previously generated avatars)
-const mockAvatars: Avatar[] = [
-  {
-    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    metadata: {
-      id: '1',
-      prompt: 'Professional woman with a confident smile',
-      timestamp: new Date(Date.now() - 86400000 * 2).toISOString(),
-      dimensions: '512x512',
-      mode: 'create',
-      style: 'realistic'
+// OpenAI API Configuration
+const OPENAI_API_URL = 'https://api.openai.com/v1/images';
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+
+// In-memory storage for our generated avatars (in a real app, this would be in a database)
+let avatars: Avatar[] = [];
+
+// Helper function to load avatars from localStorage
+const loadAvatarsFromStorage = (): void => {
+  try {
+    const savedAvatars = localStorage.getItem('avatarforge_avatars');
+    if (savedAvatars) {
+      avatars = JSON.parse(savedAvatars);
     }
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    metadata: {
-      id: '2',
-      prompt: 'Young man with stylish hair in urban setting',
-      timestamp: new Date(Date.now() - 86400000).toISOString(),
-      dimensions: '512x512',
-      mode: 'create',
-      style: 'modern'
-    }
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    metadata: {
-      id: '3',
-      prompt: 'Professional portrait of a woman with red hair',
-      timestamp: new Date().toISOString(),
-      dimensions: '1024x1024',
-      mode: 'create',
-      style: 'professional'
-    }
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    metadata: {
-      id: '4',
-      prompt: 'Smiling young man with glasses indoors',
-      timestamp: new Date().toISOString(),
-      dimensions: '1024x1024',
-      mode: 'edit',
-      style: 'casual'
-    }
+  } catch (error) {
+    console.error('Failed to load avatars from localStorage', error);
   }
-];
+};
 
-// In-memory storage for our generated avatars
-let avatars: Avatar[] = [...mockAvatars];
+// Helper function to save avatars to localStorage
+const saveAvatarsToStorage = (): void => {
+  try {
+    localStorage.setItem('avatarforge_avatars', JSON.stringify(avatars));
+  } catch (error) {
+    console.error('Failed to save avatars to localStorage', error);
+  }
+};
 
-// Mock function to generate a new avatar
+// Initialize avatars from localStorage
+loadAvatarsFromStorage();
+
+// Function to check if API key is configured
+const isApiKeyConfigured = (): boolean => {
+  return !!OPENAI_API_KEY && OPENAI_API_KEY.length > 0;
+};
+
+// Generate a new avatar using OpenAI
 export const generateAvatar = async (request: GenerationRequest): Promise<Avatar> => {
   try {
-    // Simulate API loading time
+    // Check if API key is configured
+    if (!isApiKeyConfigured()) {
+      toast.error('OpenAI API key is not configured. Please set the VITE_OPENAI_API_KEY environment variable.');
+      throw new Error('OpenAI API key is not configured');
+    }
+    
     toast.info('Processing your avatar request...', {
-      duration: 3000,
+      duration: 5000,
     });
     
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // For mock purposes, we'll use placeholder images
-    let placeholderUrl: string;
+    let imageData: string = '';
     
     if (request.mode === 'create') {
-      // Use a different placeholder for each style
-      switch (request.style) {
-        case 'anime':
-          placeholderUrl = 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=' + Date.now();
-          break;
-        case 'pixel':
-          placeholderUrl = 'https://api.dicebear.com/7.x/pixel-art/svg?seed=' + Date.now();
-          break;
-        case 'realistic':
-        default:
-          placeholderUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + Date.now();
-          break;
+      // Text-to-image generation
+      const response = await fetch(`${OPENAI_API_URL}/generations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "dall-e-3",
+          prompt: buildPrompt(request.prompt, request.style),
+          n: 1,
+          size: request.size || "1024x1024",
+          response_format: "b64_json"
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'Failed to generate image');
       }
-    } else {
-      // For edit mode, just use the same placeholder generator but with different seed
-      placeholderUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + Math.random();
+      
+      const data = await response.json();
+      imageData = data.data[0].b64_json;
+      
+    } else if (request.mode === 'edit' && request.image) {
+      // Image-to-image (edit) generation
+      const imageBase64 = await fileToBase64(request.image);
+      const imageBase64Stripped = stripBase64Header(imageBase64);
+      
+      const response = await fetch(`${OPENAI_API_URL}/edits`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "dall-e-2", // DALL-E 3 doesn't support edits yet
+          image: imageBase64Stripped,
+          prompt: buildPrompt(request.prompt, request.style),
+          n: 1,
+          size: request.size || "1024x1024",
+          response_format: "b64_json"
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'Failed to edit image');
+      }
+      
+      const data = await response.json();
+      imageData = data.data[0].b64_json;
     }
+    
+    // Convert base64 to URL
+    const url = base64ToUrl(imageData);
     
     // Create new avatar metadata
     const newAvatar: Avatar = {
-      url: placeholderUrl,
+      url,
       metadata: {
         id: Date.now().toString(),
         prompt: request.prompt,
         timestamp: new Date().toISOString(),
-        dimensions: request.size || '512x512',
+        dimensions: request.size || '1024x1024',
         mode: request.mode,
         style: request.style
       }
@@ -125,12 +152,87 @@ export const generateAvatar = async (request: GenerationRequest): Promise<Avatar
     // Add to our "database"
     avatars = [newAvatar, ...avatars];
     
+    // Save to localStorage
+    saveAvatarsToStorage();
+    
     return newAvatar;
   } catch (error) {
     console.error('Error generating avatar:', error);
-    toast.error('Failed to generate avatar. Please try again.');
-    throw new Error('Failed to generate avatar');
+    toast.error(`Failed to generate avatar: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    
+    // If API key is not configured, provide fallback to mock data
+    if (!isApiKeyConfigured()) {
+      return generateMockAvatar(request);
+    }
+    
+    throw error;
   }
+};
+
+// Helper function to build prompts with style information
+const buildPrompt = (prompt: string, style?: string): string => {
+  if (!style || style === 'realistic') {
+    return `A high-quality, professional avatar portrait of ${prompt}. Make sure it's suitable for a profile picture, with good lighting and clear facial features.`;
+  }
+  
+  switch (style) {
+    case 'anime':
+      return `An anime-style avatar of ${prompt}. Use vibrant colors, large expressive eyes, and stylized features typical of anime.`;
+    case 'pixel':
+      return `A pixel art style avatar of ${prompt}. Use limited color palette and visible pixels in a retro game aesthetic.`;
+    case '3d':
+      return `A 3D rendered avatar of ${prompt}. Ensure good lighting, shadows, and texture details.`;
+    case 'sketch':
+      return `A hand-drawn sketch style avatar of ${prompt}. Use pencil or pen strokes, with a artistic, incomplete look.`;
+    default:
+      return `A high-quality avatar portrait of ${prompt} in ${style} style.`;
+  }
+};
+
+// Fallback function to generate a mock avatar when API is not available
+const generateMockAvatar = async (request: GenerationRequest): Promise<Avatar> => {
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Use a different placeholder for each style
+  let placeholderUrl: string;
+  
+  if (request.mode === 'create') {
+    switch (request.style) {
+      case 'anime':
+        placeholderUrl = 'https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=' + Date.now();
+        break;
+      case 'pixel':
+        placeholderUrl = 'https://api.dicebear.com/7.x/pixel-art/svg?seed=' + Date.now();
+        break;
+      case 'realistic':
+      default:
+        placeholderUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + Date.now();
+        break;
+    }
+  } else {
+    placeholderUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + Math.random();
+  }
+  
+  // Create new avatar metadata
+  const newAvatar: Avatar = {
+    url: placeholderUrl,
+    metadata: {
+      id: Date.now().toString(),
+      prompt: request.prompt,
+      timestamp: new Date().toISOString(),
+      dimensions: request.size || '512x512',
+      mode: request.mode,
+      style: request.style
+    }
+  };
+  
+  // Add to our "database"
+  avatars = [newAvatar, ...avatars];
+  
+  // Save to localStorage
+  saveAvatarsToStorage();
+  
+  return newAvatar;
 };
 
 // Function to get all previously generated avatars
@@ -141,4 +243,49 @@ export const getAvatars = (): Avatar[] => {
 // Function to delete an avatar
 export const deleteAvatar = (id: string): void => {
   avatars = avatars.filter(avatar => avatar.metadata.id !== id);
+  saveAvatarsToStorage();
 };
+
+// Update LoadingAvatar.tsx to display better loading messages
+<lov-write file_path="src/components/LoadingAvatar.tsx">
+import React from 'react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
+
+const LoadingAvatar: React.FC = () => {
+  // Generate a random loading message
+  const loadingMessages = [
+    "Forging your avatar...",
+    "Generating masterpiece...",
+    "AI is working its magic...",
+    "Creating digital likeness...",
+    "Drawing pixels of perfection...",
+    "Crafting your new look..."
+  ];
+  
+  const randomMessage = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
+  
+  return (
+    <Card className="overflow-hidden">
+      <CardContent className="p-0 flex items-center justify-center h-64 bg-accent bg-grid">
+        <div className="flex flex-col items-center justify-center text-primary">
+          <div className="relative">
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center animate-pulse-slow">
+              <Loader2 className="h-8 w-8 text-primary animate-spin-slow" />
+            </div>
+            <div className="absolute inset-0 bg-radial-gradient rounded-full animate-pulse"></div>
+          </div>
+          <p className="mt-4 text-sm font-medium animate-pulse">{randomMessage}</p>
+        </div>
+      </CardContent>
+      <CardFooter className="p-4">
+        <div className="w-full space-y-2">
+          <div className="h-4 bg-accent rounded animate-pulse"></div>
+          <div className="h-4 w-2/3 bg-accent rounded animate-pulse"></div>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default LoadingAvatar;
