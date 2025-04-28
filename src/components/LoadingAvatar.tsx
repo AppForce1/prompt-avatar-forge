@@ -4,6 +4,18 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
 const LoadingAvatar: React.FC = () => {
+  // Generate a random loading message
+  const loadingMessages = [
+    "Forging your avatar...",
+    "Generating masterpiece...",
+    "AI is working its magic...",
+    "Creating digital likeness...",
+    "Drawing pixels of perfection...",
+    "Crafting your new look..."
+  ];
+  
+  const randomMessage = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
+  
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-0 flex items-center justify-center h-64 bg-accent bg-grid">
@@ -14,7 +26,7 @@ const LoadingAvatar: React.FC = () => {
             </div>
             <div className="absolute inset-0 bg-radial-gradient rounded-full animate-pulse"></div>
           </div>
-          <p className="mt-4 text-sm font-medium animate-pulse">Forging your avatar...</p>
+          <p className="mt-4 text-sm font-medium animate-pulse">{randomMessage}</p>
         </div>
       </CardContent>
       <CardFooter className="p-4">
