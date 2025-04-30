@@ -66,7 +66,7 @@ export const generateAvatar = async (request: GenerationRequest): Promise<Avatar
       prompt: request.prompt,
       mode: request.mode,
       style: request.style,
-      size: request.size
+      size: request.size || '1024x1024' // Ensure a default size is set
     };
     
     // If we're editing an image, convert it to base64
@@ -164,7 +164,7 @@ const generateMockAvatar = async (request: GenerationRequest): Promise<Avatar> =
       id: Date.now().toString(),
       prompt: request.prompt,
       timestamp: new Date().toISOString(),
-      dimensions: request.size || '512x512',
+      dimensions: request.size || '1024x1024',
       mode: request.mode,
       style: request.style
     }
