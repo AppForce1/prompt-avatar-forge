@@ -27,7 +27,7 @@ const Index = () => {
         mode,
         image: file,
         style,
-        size: size as '512x512' | '1024x1024',
+        size: size as '1024x1024' | '1024x1792' | '1792x1024',
       });
       
       setAvatars(getAvatars());
