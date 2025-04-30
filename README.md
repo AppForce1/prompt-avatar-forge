@@ -122,7 +122,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Supabase for the backend infrastructure
 - shadcn/ui for the component library
 - The open-source community for various tools and libraries
-
-## Support
-
-For support, email support@example.com or join our Slack channel.
