@@ -1,73 +1,128 @@
-# Welcome to your Lovable project
+# Avatar Forge
 
-## Project info
+A modern web application for creating and editing AI-generated avatars using OpenAI's DALL-E API. Built with React, TypeScript, and Supabase. GEnerated ysing Lovable.
 
-**URL**: https://lovable.dev/projects/8a03a1c0-302c-4ae0-8319-2e982ec02c51
+![Avatar Forge Screenshot](public/screenshot.png)
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- 🎨 Create AI-generated avatars from text prompts
+- ✏️ Edit existing images with AI-powered transformations
+- 🎭 Multiple style presets (Realistic, Anime, Pixel Art, 3D, Sketch)
+- 📱 Responsive design with modern UI components
+- 💾 Local storage for saving generated avatars
+- ⚡ Fast and efficient image processing
+- 🔒 Secure API key management through Supabase Edge Functions
 
-**Use Lovable**
+## Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8a03a1c0-302c-4ae0-8319-2e982ec02c51) and start prompting.
+- **Frontend:**
+  - React 18
+  - TypeScript
+  - Vite
+  - Tailwind CSS
+  - shadcn/ui components
+  - React Query
+  - React Router
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Backend:**
+  - Supabase Edge Functions
+  - OpenAI DALL-E API
+  - Local Storage for persistence
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js 18+ and npm
+- Supabase account
+- OpenAI API key
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/avatar-forge.git
+cd avatar-forge
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies:
+```bash
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Set up environment variables:
+Create a `.env` file in the root directory with the following variables:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+├── components/     # Reusable UI components
+├── services/      # API and business logic
+├── utils/         # Helper functions
+├── hooks/         # Custom React hooks
+├── integrations/  # Third-party service integrations
+└── pages/         # Page components
+```
 
-**Use GitHub Codespaces**
+## Key Features Implementation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Avatar Generation
+- Uses OpenAI's DALL-E API through Supabase Edge Functions
+- Supports multiple image sizes (1024x1024, 1024x1792, 1792x1024)
+- Implements style presets for different artistic directions
+- Handles both creation and editing modes
 
-## What technologies are used for this project?
+### Image Processing
+- Base64 image handling
+- File validation and optimization
+- Secure API key management
+- Error handling and fallback mechanisms
 
-This project is built with:
+### State Management
+- React Query for API state
+- Local storage for persistence
+- Context-based theme management
+- Form state handling with React Hook Form
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Best Practices
 
-## How can I deploy this project?
+- TypeScript for type safety
+- Component-based architecture
+- Responsive design principles
+- Error boundary implementation
+- Performance optimization
+- Accessibility compliance
 
-Simply open [Lovable](https://lovable.dev/projects/8a03a1c0-302c-4ae0-8319-2e982ec02c51) and click on Share -> Publish.
+## Contributing
 
-## Can I connect a custom domain to my Lovable project?
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-Yes, you can!
+## License
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Acknowledgments
+
+- OpenAI for the DALL-E API
+- Supabase for the backend infrastructure
+- shadcn/ui for the component library
+- The open-source community for various tools and libraries
+
+## Support
+
+For support, email support@example.com or join our Slack channel.
