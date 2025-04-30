@@ -19,7 +19,7 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading }) => {
   const [mode, setMode] = useState<GenerationMode>('create');
   const [file, setFile] = useState<File | null>(null);
   const [style, setStyle] = useState('realistic');
-  const [size, setSize] = useState('512x512');
+  const [size, setSize] = useState('1024x1024');
   const [filePreview, setFilePreview] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,8 +88,9 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading }) => {
                   <SelectValue placeholder="Select size" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="512x512">512 × 512</SelectItem>
-                  <SelectItem value="1024x1024">1024 × 1024</SelectItem>
+                  <SelectItem value="1024x1024">1024 × 1024 (Square)</SelectItem>
+                  <SelectItem value="1024x1792">1024 × 1792 (Portrait)</SelectItem>
+                  <SelectItem value="1792x1024">1792 × 1024 (Landscape)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

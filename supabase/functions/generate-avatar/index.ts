@@ -31,6 +31,9 @@ serve(async (req) => {
     
     let imageData: string = '';
     
+    // Always use a valid size for DALL-E 3
+    const validSize = "1024x1024"; // DALL-E 3 only supports 1024x1024, 1024x1792, or 1792x1024
+    
     if (mode === 'create') {
       // Text-to-image generation
       const response = await fetch(`${OPENAI_API_URL}/generations`, {
@@ -43,7 +46,7 @@ serve(async (req) => {
           model: "dall-e-3",
           prompt: buildPrompt(prompt, style),
           n: 1,
-          size: size || "1024x1024",
+          size: validSize,
           response_format: "b64_json"
         })
       });
@@ -70,7 +73,7 @@ serve(async (req) => {
           image: image,
           prompt: buildPrompt(prompt, style),
           n: 1,
-          size: size || "1024x1024",
+          size: size === '512x512' ? '1024x1024' : size, // Ensure valid size for DALL-E 2
           response_format: "b64_json"
         })
       });

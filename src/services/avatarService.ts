@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 import { stripBase64Header, fileToBase64, base64ToUrl } from '@/utils/fileUtils';
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +10,7 @@ export interface GenerationRequest {
   mode: GenerationMode;
   image?: File | null;
   style?: string;
-  size?: '512x512' | '1024x1024';
+  size?: '1024x1024' | '1024x1792' | '1792x1024'; // Updated valid sizes for DALL-E 3
 }
 
 export interface AvatarMetadata {
